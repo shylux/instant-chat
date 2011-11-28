@@ -26,7 +26,7 @@ CREATE TABLE message (
 
 delimiter //
 
-DROP FUNCTION IF EXISTS adduser//
+DROP FUNCTION IF EXISTS getcreateuser//
 CREATE FUNCTION getcreateuser (username varchar(100))
 RETURNS BIGINT
 BEGIN

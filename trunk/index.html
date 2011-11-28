@@ -4,17 +4,24 @@
 	<meta charset="utf-8" />
 	<title>Instant Chat</title>
 	<script src="jquery-1.7.1.min.js"></script>
+	<script src="json.js"></script>
+	<script src="date.js"></script>
 	<script src="chat.js"></script>
 	<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 	<div id="inchat_main">
 		<div id="inchat_display">
-			<textarea id="inchat_display_textarea">test</textarea>
+			<table id="inchat_msg_table">
+				<tr class="inchat_msg_entry">
+					<td class="inchat_msg_date">Date</td>
+					<td class="inchat_msg_message">User / Message</td>
+				</tr>
+			</table>
 		</div>
 		<div id="inchat_input">
-			<input id="inchat_input_message" type="input" value="message" />
-			<input id="inchat_input_send" type="submit" onClick="javascript:inchat_send()" />
+			<input id="inchat_input_message" type="input" onkeydown="javascript:inchat_checkenter(event.which)" />
+			<input id="inchat_input_send" type="submit" value="<< SEND >>" onSubmit="javascript:inchat_send()" onClick="javascript:inchat_send()" />
 		</div>
 	</div>
 </body>
