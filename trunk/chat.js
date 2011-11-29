@@ -1,33 +1,45 @@
 $(document).ready(function() {
 	listening = true;
 	listen();
+	$('#inchat_input_message').focus();
 });
 
 maxtablelength = 7;
 lastid = 0;
 listening = false;
 function listen() {
+	if (!listening) return;
 	$.ajax({
-		url: "checkmessage.php",
+		url: "inchat.php",
+		contentType: "application/json",
+		dataType: "json",
 		async: true,
-		type: "GET",
-		data: {'lastid': lastid},
+		data: {'action': 'checknewmessage', 'lastid': lastid},
 		success: parseMessages,
-		error: parseError
+		error: parseError,
 	});
 }
 
 function parseMessages(data) {
-	for (var index in data) {
-		var msg = data[index];
+	if (data.status != 'success') alert(data.message);
+	for (var index in data.messages) {
+		var msg = data.messages[index];
 		appendMessage(msg.name, msg.message, msg.timestamp);
 		lastid = msg.id;
 	}
-	if (listening) listen();
+	listen();
 }
 
 function parseError(jqXHR, textStatus, errorThrown) {
-	alert(textStatus);
+	if (textStatus == "parsererror" && jqXHR.status == 200) {
+		// Just a workaround for server timeout
+		listen();
+	} else if (jqXHR.status == 0 && jqXHR.readyState == 0) {
+		// request aborted
+		return;		
+	} else {
+		alert(JSON.stringify(jqXHR) + " : " + textStatus + " : " + errorThrown);
+	}
 }
 
 function appendMessage(username, message, date) {
@@ -45,9 +57,10 @@ function inchat_send() {
 	
 	$('#inchat_input_message').val('').focus();
 	$.ajax({
-		url: "addmessage.php",
-		type: "POST",
-		data: {'username': username, 'message': message}
+		url: "inchat.php",
+		contentType: "application/json",
+		dataType: "json",
+		data: {'action': 'addmessage', 'username': username, 'message': message}
 	});
 }
 
