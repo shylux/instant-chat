@@ -51,8 +51,10 @@ END//
 
 DROP FUNCTION IF EXISTS addmessage//
 CREATE FUNCTION addmessage (userid BIGINT, newmessage varchar(255))
-RETURNS BOOLEAN
+RETURNS BIGINT
 BEGIN
+	DECLARE messageid BIGINT;
 	INSERT INTO message (user, message) VALUES (userid, newmessage);
-	RETURN TRUE;
+	SELECT id INTO messageid FROM message GROUP BY id DESC LIMIT 1;
+	RETURN messageid;
 END//
