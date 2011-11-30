@@ -1,13 +1,13 @@
 $(document).ready(function() {
 	listening = true;
-	listen();
+	inchat_listen();
 	$('#inchat_input_message').focus();
 });
 
 maxtablelength = 7;
 lastid = 0;
 listening = false;
-function listen() {
+function inchat_listen() {
 	if (!listening) return;
 	$.ajax({
 		url: "inchat.php",
@@ -27,13 +27,13 @@ function parseMessages(data) {
 		appendMessage(msg.name, msg.message, msg.timestamp);
 		lastid = msg.id;
 	}
-	listen();
+	inchat_listen();
 }
 
 function parseError(jqXHR, textStatus, errorThrown) {
 	if (textStatus == "parsererror" && jqXHR.status == 200) {
 		// Just a workaround for server timeout
-		listen();
+		inchat_listen();
 	} else if (jqXHR.status == 0 && jqXHR.readyState == 0) {
 		// request aborted
 		return;		
