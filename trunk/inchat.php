@@ -1,22 +1,23 @@
 <?php
-inchat_db_connect();
 
-$inchat_memcache = new Memcached('inchat');
-$inchat_memcache->addServer('localhost', 11211);
+// Use Memcache for better performance!
+$MEMCACHE_ENABLED = false;
 
-$inchat_curr_msg_id = $inchat_memcache->get('current_message_id');
+$DB_NAME = 'instantchatdb';
+$DB_USER = 'instantchatuser';
+$DB_PW   = 'instantpwchat';
+$DB_SERV = 'localhost';
 
-// Convert from array to object
-$req_str = json_encode($_GET);
-$request = json_decode($req_str);
+$ic = Inchat::getInstance();
+
+
 
 // Check vor valid action
-if (!isset($request->action)) die("No action set");
+if (!isset($ic->request->action)) die("No action set");
 
-$resp = new inchat_response;
 
 // Handle different actions
-switch ($request->action) {
+switch ($ic->request->action) {
 	case "addmessage":
 		addmessage();
 		break;
@@ -24,20 +25,20 @@ switch ($request->action) {
 		checknewmessage();
 		break;
 	default:
-		$resp->send_error('No action defined.');
+		$ic->response->send_error('No action defined.');
 }
 
-$resp->respond();
+$ic->response->respond();
 
 
 function addmessage() {
-	global $request, $resp, $inchat_memcache;
-	if (!isset($request->message)) {
-		$resp->send_error("No Message specified.");
+	$ic = Inchat::getInstance();
+	if (!isset($ic->request->message)) {
+		$ic->response->send_error("No Message specified.");
 	}
 
-	$username = (isset($request->username)) ? $request->username : 'anonymous';
-	$message = $request->message;
+	$username = (isset($ic->request->username)) ? $ic->request->username : 'anonymous';
+	$message = $ic->request->message;
 
 	$getuser_query = "SELECT getcreateuser('".mysql_escape_string($username)."');";
 	$user_res = inchat_mysql_query($getuser_query);
@@ -48,20 +49,17 @@ function addmessage() {
 	$message_id_res = inchat_mysql_query($add_query);
 	$message_id_array = mysql_fetch_array($message_id_res);
 	$message_id = $message_id_array[0];
-	$inchat_memcache->set('current_message_id', $message_id);
+	if ($ic->memcache_en) $ic->memcache->set('current_message_id', $message_id);
 }
 
 function checknewmessage() {
-	global $request, $resp, $inchat_memcache;
-	$lastid = (isset($request->lastid)) ? $request->lastid : 0;
+	$ic = Inchat::getInstance();
+	$lastid = (isset($ic->request->lastid)) ? $ic->request->lastid : 0;
 
-	/*
-	while (count_new_messages($lastid) == 0) {
-		sleep(0.1);
-	}
-	*/
-	while ($inchat_memcache->get('current_message_id') == $lastid) {
-		usleep(50000);
+	if ($ic->memcache_en) {
+		wait_for_message_memcache();
+	} else {
+		wait_for_message_db();
 	}
 
 	$query_string = "SELECT message.*, user.name FROM message, user WHERE message.user = user.id AND message.id > ".mysql_escape_string($lastid).";";
@@ -73,7 +71,19 @@ function checknewmessage() {
 		array_push($result_array, $row);
 	}
 
-	$resp->messages = $result_array;
+	$ic->response->messages = $result_array;
+}
+function wait_for_message_db() {
+	$ic = Inchat::getInstance();
+	while (count_new_messages($ic->request->lastid) == 0) {
+		usleep(100000);
+	}
+}
+function wait_for_message_memcache() {
+	$ic = Inchat::getInstance();
+	while ($ic->get_curr_msg_id() == $ic->request->lastid) {
+		usleep(50000);
+	}
 }
 	
 function count_new_messages($index) {
@@ -83,10 +93,10 @@ function count_new_messages($index) {
 }
 
 function inchat_mysql_query($query) {
-	global $resp;
+	$ic = Inchat::getInstance();
 	$recource = mysql_query($query);
 	if (!$recource) {
-		$resp->send_error("MySQL Error: ".mysql_error()."\nQuery: ".$query);
+		$ic->response->send_error("MySQL Error: ".mysql_error()."\nQuery: ".$query);
 	}
 	return $recource;
 }
@@ -118,4 +128,50 @@ class inchat_response {
 		$this->respond();
 	}
 }
+
+class Inchat {
+	public $memcache_en;
+	public $memcache;
+	public $db;
+	public $request;
+	public $response;
+
+	static private $instance = null;
+	static public function getInstance() {
+		if (null === self::$instance) {
+			self::$instance = new self;
+		}
+		return self::$instance;
+	}
+	private function __clone() {}
+	private function __construct() {
+		global $DB_NAME, $DB_USER, $DB_PW, $DB_SERV, $MEMCACHE_ENABLED;
+
+		// Request - Convert from array to object
+		$req_str = json_encode($_GET);
+		$this->request = json_decode($req_str);
+
+		// Response
+		$this->response = new inchat_response;
+
+		// Memcache
+		$this->memcache_en = $MEMCACHE_ENABLED;
+		if ($MEMCACHE_ENABLED) {
+			$this->memcache = new Memcached('inchat');
+			$this->memcache->addServer('localhost', 11211);
+		}
+
+		// Database
+		$link = mysql_pconnect($DB_SERV, $DB_USER, $DB_PW);
+		if (!$link) die ("Can't connect to Database-Server: ".mysql_error());
+
+		$this->db = mysql_select_db($DB_NAME, $link);
+		if (!$link) die ("Can't change to Database: ".mysql_error());
+	}
+	public function get_curr_msg_id() {
+		$inchat_curr_msg_id = $this->memcache->get('current_message_id');
+		return ($inchat_curr_msg_id) ? $inchat_curr_msg_id : 0;
+	}
+}
+
 ?>
