@@ -35,6 +35,15 @@ I use JSON syntax to communicate between server and client. With this you can ea
 || lastid || int || *Optional* The id of the last message. To check if a newer one is available. If you leaf it blank it will return instantly the newest messages. ||
 || max_messages || int || *Optional* Limites the amount of messages returned. Used for the first request, because we dont know the newest id. ||
 
+{{{
+{"status": "success", "message":" no message",
+"messages": [
+{"id": "1", "user": "1", "message": "test", "timestamp": "2011-11-30 15:58:40", "name": "anonymous"},
+{"id": "2", "user": "1", "message": "test2", "timestamp": "2011-11-30 15:59:17", "name": "anonymous"}
+]
+}
+}}}
+
 == Responce ==
 *I list just the additional fields to the required.*
 || *Field* || *Datatype* || *Description* ||
