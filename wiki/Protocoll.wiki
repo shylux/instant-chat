@@ -57,8 +57,7 @@ I use JSON syntax to communicate between server and client. With this you can ea
 "messages": [
 {"id": "1", "user": "1", "message": "test", "timestamp": "2011-11-30 15:58:40", "name": "anonymous"},
 {"id": "2", "user": "1", "message": "test2", "timestamp": "2011-11-30 15:59:17", "name": "anonymous"}
-]
-}
+]}
 }}}
 
 = Add Message =
