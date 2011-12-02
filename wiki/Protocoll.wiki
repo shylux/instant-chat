@@ -36,12 +36,7 @@ I use JSON syntax to communicate between server and client. With this you can ea
 || max_messages || int || *Optional* Limites the amount of messages returned. Used for the first request, because we dont know the newest id. ||
 
 {{{
-{"status": "success", "message":" no message",
-"messages": [
-{"id": "1", "user": "1", "message": "test", "timestamp": "2011-11-30 15:58:40", "name": "anonymous"},
-{"id": "2", "user": "1", "message": "test2", "timestamp": "2011-11-30 15:59:17", "name": "anonymous"}
-]
-}
+{'action': 'checknewmessage', 'lastid': 20, 'max_messages': 7}
 }}}
 
 == Responce ==
@@ -53,3 +48,12 @@ I use JSON syntax to communicate between server and client. With this you can ea
 || messages->message || String || The message. ||
 || messages->timestamp || String || Timestamp in DB format (YYYY-MM-DD HH:MM:SS) ||
 || messages->name || String || Username of sender||
+
+{{{
+{"status": "success", "message":" no message",
+"messages": [
+{"id": "1", "user": "1", "message": "test", "timestamp": "2011-11-30 15:58:40", "name": "anonymous"},
+{"id": "2", "user": "1", "message": "test2", "timestamp": "2011-11-30 15:59:17", "name": "anonymous"}
+]
+}
+}}}
