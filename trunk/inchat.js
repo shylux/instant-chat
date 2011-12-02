@@ -1,20 +1,23 @@
+var INCHAT_TARGET = 'inchat.php'
+
 $(document).ready(function() {
 	listening = true;
 	inchat_listen();
 	$('#inchat_input_message').focus();
 });
 
-maxtablelength = 7;
+MAX_MESSAGES_DISPLAYED = 7;
+maxtablelength = MAX_MESSAGES_DISPLAYED;
 lastid = 0;
 listening = false;
 function inchat_listen() {
 	if (!listening) return;
 	$.ajax({
-		url: "inchat.php",
+		url: INCHAT_TARGET,
 		contentType: "application/json",
 		dataType: "json",
 		async: true,
-		data: {'action': 'checknewmessage', 'lastid': lastid},
+		data: {'action': 'checknewmessage', 'lastid': lastid, 'max_messages': MAX_MESSAGES_DISPLAYED},
 		success: parseMessages,
 		error: parseError,
 	});
@@ -25,7 +28,7 @@ function parseMessages(data) {
 	for (var index in data.messages) {
 		var msg = data.messages[index];
 		appendMessage(msg.name, msg.message, msg.timestamp);
-		lastid = msg.id;
+		if (lastid < msg.id) lastid = msg.id;
 	}
 	inchat_listen();
 }
@@ -57,7 +60,7 @@ function inchat_send() {
 	
 	$('#inchat_input_message').val('').focus();
 	$.ajax({
-		url: "inchat.php",
+		url: INCHAT_TARGET,
 		contentType: "application/json",
 		dataType: "json",
 		data: {'action': 'addmessage', 'username': username, 'message': message}

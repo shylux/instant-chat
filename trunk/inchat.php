@@ -8,9 +8,13 @@ $DB_USER = 'instantchatuser';
 $DB_PW   = 'instantpwchat';
 $DB_SERV = 'localhost';
 
+$MAX_DELIVERED_MESSAGES = 30;
+
 $ic = Inchat::getInstance();
 
-
+if (!inchat_authenticate()) {
+	$ic->send_error("Authentication failed.");
+}
 
 // Check vor valid action
 if (!isset($ic->request->action)) die("No action set");
@@ -30,6 +34,19 @@ switch ($ic->request->action) {
 
 $ic->response->respond();
 
+/**
+* Checks if the user is allowed to use the chat.
+*/
+function inchat_authenticate() {
+	return true;
+}
+
+/**
+* Gets the username.
+*/
+function inchat_getusername() {
+	return "anonymous";
+}
 
 function addmessage() {
 	$ic = Inchat::getInstance();
@@ -37,7 +54,7 @@ function addmessage() {
 		$ic->response->send_error("No Message specified.");
 	}
 
-	$username = (isset($ic->request->username)) ? $ic->request->username : 'anonymous';
+	$username = inchat_getusername();
 	$message = $ic->request->message;
 
 	$getuser_query = "SELECT getcreateuser('".mysql_escape_string($username)."');";
@@ -62,7 +79,8 @@ function checknewmessage() {
 		wait_for_message_db();
 	}
 
-	$query_string = "SELECT message.*, user.name FROM message, user WHERE message.user = user.id AND message.id > ".mysql_escape_string($lastid).";";
+	$limit = ($ic->max_delivered_messages < $ic->request->max_messages) ? $ic->max_delivered_messages : $ic->request->max_messages;
+	$query_string = "SELECT message.*, user.name FROM message, user WHERE message.user = user.id AND message.id > ".mysql_escape_string($lastid)." GROUP BY message.id DESC LIMIT ".mysql_escape_string($limit).";";
 	$result = inchat_mysql_query($query_string);
 
 	$result_array = array();
@@ -96,7 +114,7 @@ function inchat_mysql_query($query) {
 	$ic = Inchat::getInstance();
 	$recource = mysql_query($query);
 	if (!$recource) {
-		$ic->response->send_error("MySQL Error: ".mysql_error()."\nQuery: ".$query);
+		$ic->response->send_error("Query: ".$query."  MySQL Error: ".mysql_error());
 	}
 	return $recource;
 }
@@ -133,6 +151,7 @@ class Inchat {
 	public $memcache_en;
 	public $memcache;
 	public $db;
+	public $max_delivered_messages;
 	public $request;
 	public $response;
 
@@ -145,7 +164,7 @@ class Inchat {
 	}
 	private function __clone() {}
 	private function __construct() {
-		global $DB_NAME, $DB_USER, $DB_PW, $DB_SERV, $MEMCACHE_ENABLED;
+		global $DB_NAME, $DB_USER, $DB_PW, $DB_SERV, $MEMCACHE_ENABLED, $MAX_DELIVERED_MESSAGES;
 
 		// Request - Convert from array to object
 		$req_str = json_encode($_GET);
@@ -167,6 +186,8 @@ class Inchat {
 
 		$this->db = mysql_select_db($DB_NAME, $link);
 		if (!$link) die ("Can't change to Database: ".mysql_error());
+
+		$this->max_delivered_messages = $MAX_DELIVERED_MESSAGES;
 	}
 	public function get_curr_msg_id() {
 		$inchat_curr_msg_id = $this->memcache->get('current_message_id');
