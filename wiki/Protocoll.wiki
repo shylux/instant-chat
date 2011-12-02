@@ -1,5 +1,7 @@
 #summary JSON Protocoll Specifications
 
+<wiki:toc max_depth="1" />
+
 = General =
 
 I use JSON syntax to communicate between server and client. With this you can easily make your own client.
