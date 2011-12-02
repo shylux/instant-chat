@@ -10,8 +10,19 @@ The numbers in clamp are the version number of the software i use. I recommend t
 = Step by Step Guide =
 
   * Download the Project
-{{{svn checkout http://instant-chat.googlecode.com/svn/trunk/ instant-chat-read-only}}}
-  *  
+{{{
+svn checkout http://instant-chat.googlecode.com/svn/trunk/ instant-chat-read-only
+}}}
+  * Create Database
+{{{
+mysql -u root -p < db_setup.sql
+}}}
+  * MySQL Modul for PHP
+You have to load the mysql modul for php. Restart the webserver after that.
+{{{
+a2enmod <mysql-modul>
+service apache2 restart
+}}}
 
 
 = Details =
