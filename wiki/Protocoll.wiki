@@ -1,0 +1,46 @@
+#summary JSON Protocoll Specifications
+
+= General =
+
+I use JSON syntax to communicate between server and client. With this you can easily make your own client.
+
+= Required Fields =
+*You have to specify these fields in every request/responce*
+
+== Request ==
+|| *Field* || *Datatype* || *Description* ||
+|| action || String || Specify the action. For some requests you have to specify more fields. ||
+
+{{{
+{"action": "example"}
+}}}
+
+== Responce ==
+
+|| *Field* || *Datatype* || *Description* ||
+|| status || String || success or error ||
+|| message || String || Message to discribe the status. Used to store error messages. ||
+
+{{{
+{"status": "success", "message": "no message"}
+
+{"status": "error", "message": "couldn't connect to database"}
+}}}
+
+= Check for new messages =
+
+== Request ==
+|| *Field* || *Datatype* || *Description* ||
+|| action || String || "checknewmessage" ||
+|| lastid || int || *Optional* The id of the last message. To check if a newer one is available. If you leaf it blank it will return instantly the newest messages. ||
+|| max_messages || int || *Optional* Limites the amount of messages returned. Used for the first request, because we dont know the newest id. ||
+
+== Responce ==
+*I list just the additional fields to the required.*
+|| *Field* || *Datatype* || *Description* ||
+|| messages || List{Object} || A list with message objects. ||
+|| messages->id || int || Id of the message ||
+|| messages->user || int || User id of sender||
+|| messages->message || String || The message. ||
+|| messages->timestamp || String || Timestamp in DB format (YYYY-MM-DD HH:MM:SS) ||
+|| messages->name || String || Username of sender||
