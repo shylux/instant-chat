@@ -23,3 +23,17 @@ You have to load the mysql modul for php. Restart the webserver after that.
 a2enmod <mysql-modul>
 service apache2 restart
 }}}
+
+= Advanced Functions =
+
+== Memcached ==
+Memcached is an in-memory key-value store. I use it to check wheter there is a new message or not.
+Without memcached i have to do mysql querys which results in a bad performance for the webserver.
+
+{{{
+sudo apt-get install memcached
+a2enmod mem_cache
+
+vi inchat.php
+$MEMCACHE_ENABLED = true;
+}}}
