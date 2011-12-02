@@ -1,6 +1,7 @@
 #summary JSON Protocoll Specifications
 
-<wiki:toc max_depth="1" />
+*Table of Contents*
+<wiki:toc max_depth="2" />
 
 = General =
 
