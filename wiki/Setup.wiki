@@ -1,0 +1,22 @@
+#summary How to setup Instant Chat
+
+= Requirements =
+The numbers in clamp are the version number of the software i use. I recommend to use the newest version but, it will work with older versions too.
+  * subversion (1.6.6) - to download the project
+  * mysql (14.14) - to store the messages
+  * php (5.3.2) - server-side script
+  * webserver (apache) - to handle the request
+
+= Step by Step Guide =
+
+  * Download the Project
+{{{svn checkout http://instant-chat.googlecode.com/svn/trunk/ instant-chat-read-only}}}
+  *  
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
