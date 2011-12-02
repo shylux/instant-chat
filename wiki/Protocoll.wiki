@@ -57,3 +57,14 @@ I use JSON syntax to communicate between server and client. With this you can ea
 ]
 }
 }}}
+
+= Add Message =
+
+== Request ==
+*I list just the additional fields to the required.*
+|| *Field* || *Datatype* || *Description* ||
+|| action || String || "addmessage" ||
+|| message || String || The message. ||
+
+== Responce ==
+No special fields in responce. Just success or an errror.
