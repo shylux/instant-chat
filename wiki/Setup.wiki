@@ -7,7 +7,7 @@ The numbers in clamp are the version number of the software i use. I recommend t
   * php (5.3.2) - server-side script
   * webserver (apache) - to handle the request
 
-= Step by Step Guide =
+= Minimal Setup =
 
   * Download the Project
 {{{
