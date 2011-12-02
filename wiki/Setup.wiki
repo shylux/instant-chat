@@ -23,11 +23,3 @@ You have to load the mysql modul for php. Restart the webserver after that.
 a2enmod <mysql-modul>
 service apache2 restart
 }}}
-
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
