@@ -167,7 +167,7 @@ class Inchat {
 		if (!$link) die ("Can't connect to Database-Server: ".mysql_error());
 
 		$this->db = mysql_select_db(INCHAT_DB_NAME, $link);
-		if (!$link) die ("Can't change to Database: ".mysql_error());
+		if (!$this->db) die ("Can't change to Database: ".mysql_error());
 	}
 	public function get_curr_msg_id() {
 		$inchat_curr_msg_id = $this->memcache->get('current_message_id');
