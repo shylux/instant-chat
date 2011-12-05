@@ -9,15 +9,23 @@ The numbers in clamp are the version number of the software i use. I recommend t
 
 = Minimal Setup =
 
-  * Download the Project
+== Download the Project ==
 {{{
 svn checkout http://instant-chat.googlecode.com/svn/trunk/ instant-chat-read-only
 }}}
-  * Create Database
+
+== Create Database ==
+=== MySQL ===
 {{{
 mysql -u root -p < db_setup.sql
 }}}
-  * MySQL Modul for PHP
+=== Postgres ===
+{{{
+psql -f db_setup_postgres.sql
+}}}
+Note: The current user needs database create rights.
+
+== MySQL Modul for PHP ==
 You have to load the mysql modul for php. Restart the webserver after that.
 {{{
 a2enmod <mysql-modul>
