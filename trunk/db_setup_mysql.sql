@@ -1,13 +1,19 @@
 -- mysql -u root -p < db_setup.sql --
+
+-- create user
 GRANT USAGE ON *.* TO instantchatuser;
 DROP USER instantchatuser;
 CREATE USER instantchatuser IDENTIFIED BY 'instantpwchat';
 
-DROP DATABASE IF EXISTS instantchatdb;
-CREATE DATABASE instantchatdb;
-GRANT ALL ON instantchatdb.* TO instantchatuser;
-USE instantchatdb;
+-- create database
+DROP DATABASE IF EXISTS instantchat;
+CREATE DATABASE instantchat;
+GRANT ALL ON instantchat.* TO instantchatuser;
 
+-- change to new database
+USE instantchat;
+
+-- create tables
 CREATE TABLE user (
 	id	BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	name	varchar(100),
@@ -24,8 +30,10 @@ CREATE TABLE message (
 ) ENGINE=INNODB;
 
 
+-- create functions
 delimiter //
 
+-- getcreateuser
 DROP FUNCTION IF EXISTS getcreateuser//
 CREATE FUNCTION getcreateuser (username varchar(100))
 RETURNS BIGINT
@@ -38,6 +46,7 @@ BEGIN
 	RETURN userid;
 END//
 
+-- checknewmessages
 DROP FUNCTION IF EXISTS checknewmessages//
 CREATE FUNCTION checknewmessages (lastid BIGINT)
 RETURNS BOOLEAN
@@ -49,6 +58,7 @@ BEGIN
 	END IF;
 END//
 
+-- addmessage
 DROP FUNCTION IF EXISTS addmessage//
 CREATE FUNCTION addmessage (userid BIGINT, newmessage varchar(255))
 RETURNS BIGINT
