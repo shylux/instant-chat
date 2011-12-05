@@ -1,5 +1,8 @@
 #summary How to setup Instant Chat
 
+*Table of Contents*
+<wiki:toc max_depth="2" />
+
 = Requirements =
 The numbers in clamp are the version number of the software i use. I recommend to use the newest version but, it will work with older versions too.
   * subversion (1.6.6) - to download the project
@@ -25,7 +28,8 @@ psql -f db_setup_postgres.sql
 }}}
 Note: The current user needs database create rights.
 
-== MySQL Modul for PHP ==
+== Modul for PHP ==
+=== MySQL ===
 You have to load the mysql modul for php. Restart the webserver after that.
 {{{
 a2enmod <mysql-modul>
