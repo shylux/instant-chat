@@ -1,4 +1,4 @@
--- create user
+-- create users
 DROP USER IF EXISTS instantchatuser;
 CREATE USER instantchatuser WITH PASSWORD 'instantpwchat';
 
@@ -10,35 +10,39 @@ CREATE DATABASE instantchat OWNER instantchatuser;
 \connect instantchat
 
 -- create tables
-CREATE TABLE "user" (
+CREATE TABLE users (
 	id	BIGSERIAL NOT NULL PRIMARY KEY,
 	name	varchar(100),
 	timestamp timestamp DEFAULT now()
 );
 
-CREATE TABLE "message" (
+CREATE TABLE message (
 	id BIGSERIAL NOT NULL PRIMARY KEY,
-	-- Need not null after user implementation --
-	"user" BIGSERIAL NOT NULL,
+	-- Need not null after users implementation --
+	userid BIGSERIAL NOT NULL,
 	message varchar(255) NOT NULL,
 	timestamp timestamp DEFAULT now(),
-	FOREIGN KEY ("user") REFERENCES "user"(id) ON DELETE CASCADE
+	FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- grant rights
+ALTER TABLE users OWNER TO instantchatuser;
+ALTER TABLE "message" OWNER TO instantchatuser;
 
 -- create functions
 CREATE LANGUAGE plpgsql;
 
--- getcreateuser
+-- getcreateusers
 CREATE OR REPLACE FUNCTION getcreateuser (username varchar(100))
 RETURNS BIGINT
 AS $body$
 DECLARE
 	userid BIGINT;
 BEGIN
-	IF NOT EXISTS (SELECT * FROM "user" WHERE "user".name = username) THEN
-		INSERT INTO "user" (name) VALUES (username);
+	IF NOT EXISTS (SELECT * FROM users WHERE users.name = username) THEN
+		INSERT INTO users (name) VALUES (username);
 	END IF;
-	SELECT id INTO userid FROM "user" WHERE "user".name = username;
+	SELECT id INTO userid FROM users WHERE users.name = username;
 	RETURN userid;
 END;
 $body$
@@ -65,7 +69,7 @@ AS $body$
 DECLARE
 	messageid BIGINT;
 BEGIN
-	INSERT INTO message ("user", message) VALUES (userid, newmessage);
+	INSERT INTO message (users, message) VALUES (userid, newmessage);
 	SELECT id INTO messageid FROM message ORDER BY id DESC LIMIT 1;
 	RETURN messageid;
 END;
