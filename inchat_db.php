@@ -128,7 +128,7 @@ class Inchat_db {
 	/**
 	* Counts new messages.
 	* Param: $index -> actual message id
-	* Return: number of new entrys
+	* Return: true if new message
 	*/
 	public function isNewMsg($index) {
 		$query = "SELECT checknewmessages('".$this->escape($index)."')";
@@ -162,10 +162,11 @@ class Inchat_db {
 	}
 
 	public function getMessages($startid, $limit) {
-		$query = "SELECT message.*, users.name FROM message, users WHERE message.userid = users.id AND message.id > ".$this->escape($startid)." ORDER BY message.id DESC LIMIT ".$this->escape($limit).";";
+		$query = "SELECT * FROM message_view WHERE id > ".$this->escape($startid)." ORDER BY id DESC LIMIT ".$this->escape($limit).";";
 		$res = $this->query($query);
 		$result_array = array();
 		while ($row=$this->fetch_object($res)) {
+			$row->timestamp = date('Y-m-d H:i:s', strtotime($row->timestamp));
 			$row->message = htmlspecialchars($row->message);
 			array_push($result_array, $row);
 		}
@@ -176,8 +177,7 @@ class Inchat_db {
 
 /*
 Inchat_db::getInstance()->setup("postgres", 'localhost', 'instantchat', 'instantchatuser', 'instantpwchat');
-$id = Inchat_db::getInstance()->getUser('anon');
-var_dump( Inchat_db::getInstance()->getMessages(0, 10) );
+var_dump( Inchat_db::getInstance()->isNewMsg(1) );
 */
 
 ?>

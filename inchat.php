@@ -4,11 +4,14 @@ include_once('inchat_db.php');
 // Use Memcache for better performance!
 define('INCHAT_MEMCACHE_ENABLED', false);
 
-define('INCHAT_DB_TYPE', 'postgres');
+define('INCHAT_DB_TYPE', 'mysql');
 define('INCHAT_DB_NAME', 'instantchat');
 define('INCHAT_DB_USER', 'instantchatuser');
 define('INCHAT_DB_PW', 'instantpwchat');
 define('INCHAT_DB_HOST', 'localhost');
+
+define('INCHAT_SLEEP_DB', 10);
+define('INCHAT_SLEEP_MEMCACHED', 5);
 
 define('INCHAT_MAX_DELIVERED_MESSAGES', 30);
 
@@ -83,13 +86,13 @@ function checknewmessage() {
 function wait_for_message_db() {
 	$ic = Inchat::getInstance();
 	while (!$ic->db->isNewMsg($ic->request->lastid)) {
-		usleep(100000);
+		usleep(10000 * INCHAT_SLEEP_DB);
 	}
 }
 function wait_for_message_memcache() {
 	$ic = Inchat::getInstance();
 	while ($ic->get_curr_msg_id() == $ic->request->lastid) {
-		usleep(50000);
+		usleep(10000 * INCHAT_SLEEP_MEMCACHED);
 	}
 }
 	

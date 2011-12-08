@@ -25,9 +25,15 @@ CREATE TABLE message (
 	FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE VIEW message_view AS
+	SELECT message.id, users.name, message.message, message.timestamp
+	FROM message, users 
+	WHERE message.userid = users.id;
+
 -- grant rights
 ALTER TABLE users OWNER TO instantchatuser;
-ALTER TABLE "message" OWNER TO instantchatuser;
+ALTER TABLE message OWNER TO instantchatuser;
+ALTER TABLE message_view OWNER TO instantchatuser;
 
 -- create functions
 CREATE LANGUAGE plpgsql;
@@ -50,26 +56,26 @@ LANGUAGE plpgsql;
 
 -- checknewmessages
 CREATE OR REPLACE FUNCTION checknewmessages (lastid BIGINT)
-RETURNS BOOLEAN
+RETURNS INT
 AS $body$
 BEGIN
 	IF EXISTS (SELECT id FROM message WHERE message.id > lastid) THEN
-		RETURN True;
+		RETURN 1;
 	ELSE
-		RETURN False;
+		RETURN 0;
 	END IF;
 END;
 $body$
 LANGUAGE plpgsql;
 
 -- addmessage
-CREATE OR REPLACE FUNCTION addmessage (userid BIGINT, newmessage varchar(255))
+CREATE OR REPLACE FUNCTION addmessage (newuserid BIGINT, newmessage varchar(255))
 RETURNS BIGINT
 AS $body$
 DECLARE
 	messageid BIGINT;
 BEGIN
-	INSERT INTO message (users, message) VALUES (userid, newmessage);
+	INSERT INTO message (userid, message) VALUES (newuserid, newmessage);
 	SELECT id INTO messageid FROM message ORDER BY id DESC LIMIT 1;
 	RETURN messageid;
 END;
