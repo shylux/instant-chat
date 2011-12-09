@@ -6,18 +6,24 @@ $(document).ready(function() {
 	$('#inchat_input_message').focus();
 });
 
-MAX_MESSAGES_DISPLAYED = 7;
-maxtablelength = MAX_MESSAGES_DISPLAYED;
+INCHAT_MAX_MESSAGES_DISPLAYED = 7;
+INCHAT_MAX_MESSAGES_PER_SECOND = 10;
+maxtablelength = INCHAT_MAX_MESSAGES_DISPLAYED;
 lastid = 0;
 listening = false;
 function inchat_listen() {
 	if (!listening) return;
+	if (!inchat_register_request()) {
+		showError("Server Error. Please contact the Admin.");
+		return;	
+	}
 	$.ajax({
 		url: INCHAT_TARGET,
 		contentType: "application/json",
 		dataType: "json",
 		async: true,
-		data: {'action': 'checknewmessage', 'lastid': lastid, 'max_messages': MAX_MESSAGES_DISPLAYED},
+		cache: false,
+		data: {'action': 'checknewmessage', 'lastid': lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED},
 		success: parseMessages,
 		error: parseError,
 	});
@@ -41,8 +47,21 @@ function parseError(jqXHR, textStatus, errorThrown) {
 		// request aborted
 		return;		
 	} else {
-		alert(JSON.stringify(jqXHR) + " : " + textStatus + " : " + errorThrown);
+		showError(JSON.stringify(jqXHR) + " : " + textStatus + " : " + errorThrown);
 	}
+}
+function showError(error_string) {
+	alert(error_string);
+}
+
+inchat_request_history = new Array();
+function inchat_register_request() {
+	var actime = new Date().getSeconds();
+	if (inchat_request_history.length > INCHAT_MAX_MESSAGES_PER_SECOND) {
+		if (inchat_request_history[inchat_request_history.length - INCHAT_MAX_MESSAGES_PER_SECOND] == actime) return false;
+	}
+	inchat_request_history.push(actime);
+	return true;
 }
 
 function appendMessage(username, message, date) {
