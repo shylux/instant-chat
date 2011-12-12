@@ -1,20 +1,25 @@
-var INCHAT_TARGET = 'inchat.php'
-
-$(document).ready(function() {
-	listening = true;
-	inchat_listen();
-	$('#inchat_input_message').focus();
-});
-
+INCHAT_TARGET = 'inchat.php'
 INCHAT_MAX_MESSAGES_DISPLAYED = 7;
 INCHAT_MAX_MESSAGES_PER_SECOND = 10;
-maxtablelength = INCHAT_MAX_MESSAGES_DISPLAYED;
-lastid = 0;
-listening = false;
+
+if (INCHAT_MAX_MESSAGES_DISPLAYED < 0) INCHAT_MAX_MESSAGES_DISPLAYED = Int32.MaxValue;
+inchat_lastid = 0;
+inchat_displayed_msg = 0;
+inchat_listening = false;
+function inchat_start() {
+	inchat_listening = true;
+	inchat_listen();
+}
+function inchat_stop() {
+	inchat_listening = false;
+}
+function inchat_focus() {
+	$('#inchat_input_message').focus();
+}
 function inchat_listen() {
-	if (!listening) return;
+	if (!inchat_listening) return;
 	if (!inchat_register_request()) {
-		showError("Server Error. Please contact the Admin.");
+		inchat_showError("Server Error. Please contact the Admin.");
 		return;	
 	}
 	$.ajax({
@@ -22,18 +27,26 @@ function inchat_listen() {
 		contentType: "application/json",
 		dataType: "json",
 		async: true,
-		data: {'method': 'checknewmessage', 'params': {'lastid': lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED}, 'id': new Date().getTime()},
+		data: {'method': 'checknewmessage', 'params': {'lastid': inchat_lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED}, 'id': new Date().getTime()},
 		success: parseMessages,
 		error: parseError
 	});
 }
 
 function parseMessages(data) {
-	if (data.error != null) showError(data.error);
+	if (data.error != null) inchat_showError(data.error);
 	for (var index in data.result) {
 		var msg = data.result[index];
-		appendMessage(msg.name, msg.message, msg.timestamp);
-		if (lastid < msg.id) lastid = msg.id;
+
+		inchat_appendMessage(msg.name, msg.message, msg.timestamp);
+		inchat_displayed_msg++;
+
+		if (inchat_lastid < msg.id) inchat_lastid = msg.id;
+
+		if (inchat_displayed_msg > INCHAT_MAX_MESSAGES_DISPLAYED) {
+			inchat_removeMessage();
+			inchat_displayed_msg--;
+		}
 	}
 	inchat_listen();
 }
@@ -46,10 +59,10 @@ function parseError(jqXHR, textStatus, errorThrown) {
 		// request aborted
 		return;		
 	} else {
-		showError(JSON.stringify(jqXHR) + " : " + textStatus + " : " + errorThrown);
+		inchat_showError(textStatus + " : " + errorThrown);
 	}
 }
-function showError(error_string) {
+function inchat_showError(error_string) {
 	alert(error_string);
 }
 
@@ -63,13 +76,14 @@ function inchat_register_request() {
 	return true;
 }
 
-function appendMessage(username, message, date) {
-	if ($('#inchat_msg_table tr').length > maxtablelength) $('#inchat_msg_table tr:first').remove();
-	var date_obj = Date.parse(date);
-	var date_out = date_obj.toString('[hh:mm]');
+function inchat_appendMessage(username, message, date) {
 	var message_template = '<tr class="inchat_msg_entry"> <td class="inchat_msg_date">[[INCHAT_DATE]]</td> <td class="inchat_msg_message">&lt;[[INCHAT_USER]]&gt; [[INCHAT_MESSAGE]]</td> </tr>';
-	var message_html = message_template.replace('[[INCHAT_DATE]]', date_out).replace('[[INCHAT_USER]]', username).replace('[[INCHAT_MESSAGE]]', message);
+	var message_html = message_template.replace('[[INCHAT_DATE]]', date).replace('[[INCHAT_USER]]', username).replace('[[INCHAT_MESSAGE]]', message);
 	$('#inchat_msg_table').append(message_html);
+}
+
+function inchat_removeMessage() {
+	$('#inchat_msg_table tr:first').remove();
 }
 
 function inchat_send() {
@@ -83,7 +97,7 @@ function inchat_send() {
 		dataType: "json",
 		data: {'method': 'addmessage', 'params': {'username': username, 'message': message}, 'id': new Date().getTime()},
 		success: function(data) {
-			if (data.error != null) showError(data.error);
+			if (data.error != null) inchat_showError(data.error);
 		},
 		error: parseError
 	});
@@ -91,6 +105,6 @@ function inchat_send() {
 
 function inchat_checkenter(eventcode) {
 	if (eventcode == 13) {
-		$('#inchat_input_send').submit();
+		inchat_send();
 	}
 }

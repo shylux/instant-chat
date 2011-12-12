@@ -1,0 +1,20 @@
+#inchat_display {
+	padding: 0;
+}
+
+#inchat_msg_table * {
+	font-size: 12px;
+}
+
+#inchat_title {
+	margin: 10px 8px 3px 8px;
+	text-align: center;
+	border-bottom: 1px solid #BDBDBD;
+}
+
+#inchat_input_message {
+	border: none;
+	border-top: 1px solid #BDBDBD;
+	border-bottom: 1px solid #BDBDBD;
+	width: 100%;
+}
