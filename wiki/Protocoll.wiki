@@ -5,6 +5,8 @@
 
 = General =
 
+*I use JSON-RPC*
+
 I use JSON syntax to communicate between server and client. With this you can easily make your own client.
 
 = Required Fields =
@@ -12,52 +14,55 @@ I use JSON syntax to communicate between server and client. With this you can ea
 
 == Request ==
 || *Field* || *Datatype* || *Description* ||
-|| action || String || Specify the action. For some requests you have to specify more fields. ||
+|| method || String || Specify the action. For some requests you have to specify more fields. ||
+|| params || Object || Parameter for the request ||
+|| id || Integer || Timestamp on client. I dont use this field yet, but its in JSON-RPC ||
+
 
 {{{
-{"action": "example"}
+{"method": "a method", "params": null, "id": 1323688455390}
 }}}
 
 == Responce ==
 
 || *Field* || *Datatype* || *Description* ||
-|| status || String || success or error ||
-|| message || String || Message to discribe the status. Used to store error messages. ||
+|| result || String || the result or null in case of an error ||
+|| error || String || the error object. null if no error occured ||
+|| id || Integer || Timestamp on client. I dont use this field yet, but its in JSON-RPC ||
 
 {{{
-{"status": "success", "message": "no message"}
+{"result": "success", "error": null, "id": 1323688455390}
 
-{"status": "error", "message": "couldn't connect to database"}
+{"result": null, "error": "couldn't connect to database", "id": 1323688455390}
 }}}
 
 = Check for new messages =
 
 == Request ==
 || *Field* || *Datatype* || *Description* ||
-|| action || String || "checknewmessage" ||
-|| lastid || int || *Optional* The id of the last message. To check if a newer one is available. If you leaf it blank it will return instantly the newest messages. ||
-|| max_messages || int || *Optional* Limites the amount of messages returned. Used for the first request, because we dont know the newest id. ||
+|| method || String || "checknewmessage" ||
+|| params->lastid || int || *Optional* The id of the last message. To check if a newer one is available. If you leaf it blank it will return instantly the newest messages. ||
+|| params->max_messages || int || *Optional* Limites the amount of messages returned. Used for the first request, because we dont know the newest id. ||
 
 {{{
-{'action': 'checknewmessage', 'lastid': 20, 'max_messages': 7}
+{'method': 'checknewmessage', "params": {'lastid': 20, 'max_messages': 7}}
 }}}
 
 == Responce ==
 *I list just the additional fields to the required.*
 || *Field* || *Datatype* || *Description* ||
-|| messages || List{Object} || A list with message objects. ||
-|| messages->id || int || Id of the message ||
-|| messages->user || int || User id of sender||
-|| messages->message || String || The message. ||
-|| messages->timestamp || String || Timestamp in DB format (YYYY-MM-DD HH:MM:SS) ||
-|| messages->name || String || Username of sender||
+|| result[] || List{Object} || A list with message objects. ||
+|| result[]->id || int || Id of the message ||
+|| result[]->message || String || The message. ||
+|| result[]->timestamp || String || Timestamp in DB format (YYYY-MM-DD HH:MM:SS) ||
+|| result[]->name || String || Username of sender||
 
 {{{
-{"status": "success", "message":" no message",
-"messages": [
-{"id": "1", "user": "1", "message": "test", "timestamp": "2011-11-30 15:58:40", "name": "anonymous"},
-{"id": "2", "user": "1", "message": "test2", "timestamp": "2011-11-30 15:59:17", "name": "anonymous"}
-]}
+{"result":[
+{"id":"1","name":"anonymous","message":"hello world","timestamp":"2011-12-12 09:48:26"},
+{"id":"2","name":"anonymous","message":"test1","timestamp":"2011-12-12 10:48:36"}],
+"error":null,
+"id":"1323688283822"}
 }}}
 
 = Add Message =
@@ -65,8 +70,8 @@ I use JSON syntax to communicate between server and client. With this you can ea
 == Request ==
 *I list just the additional fields to the required.*
 || *Field* || *Datatype* || *Description* ||
-|| action || String || "addmessage" ||
-|| message || String || The message. ||
+|| method || String || "addmessage" ||
+|| params->message || String || The message. ||
 
 == Responce ==
 No special fields in responce. Just success or an errror.
