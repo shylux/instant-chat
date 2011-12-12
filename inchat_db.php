@@ -166,6 +166,7 @@ class Inchat_db {
 		$res = $this->query($query);
 		$result_array = array();
 		while ($row=$this->fetch_object($res)) {
+			$row->id = (int) $row->id;
 			$row->timestamp = date('Y-m-d H:i:s', strtotime($row->timestamp));
 			$row->message = htmlspecialchars($row->message);
 			array_push($result_array, $row);

@@ -1,0 +1,35 @@
+body {
+	margin: 0;
+	padding: 0;
+	font-family: "Arial";
+	font-size: 0.95em
+}
+
+#sys_navigation {
+	float: left;
+	background-color: #E8E8E8;
+	border-right: 3px solid #BDBDBD;
+	padding: 50px 0;
+}
+
+#sys_navigation .sys_sec {
+	text-decoration: None;
+	padding: 4px 15px;
+	cursor: pointer;
+}
+
+.sys_unselected:hover {
+	background-color: #D8D8D8; 
+}
+.sys_hoverindiefresse {
+	background-color: #D8D8D8;
+}
+
+#sys_frame {
+	float: right;
+	border: None;
+}
+
+.sys_selected {
+	background-color: #BDBDBD;
+}
