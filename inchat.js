@@ -22,17 +22,16 @@ function inchat_listen() {
 		contentType: "application/json",
 		dataType: "json",
 		async: true,
-		cache: false,
-		data: {'action': 'checknewmessage', 'lastid': lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED},
+		data: {'method': 'checknewmessage', 'params': {'lastid': lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED}, 'id': new Date().getTime()},
 		success: parseMessages,
-		error: parseError,
+		error: parseError
 	});
 }
 
 function parseMessages(data) {
-	if (data.status != 'success') alert(data.message);
-	for (var index in data.messages) {
-		var msg = data.messages[index];
+	if (data.error != null) showError(data.error);
+	for (var index in data.result) {
+		var msg = data.result[index];
 		appendMessage(msg.name, msg.message, msg.timestamp);
 		if (lastid < msg.id) lastid = msg.id;
 	}
@@ -82,7 +81,11 @@ function inchat_send() {
 		url: INCHAT_TARGET,
 		contentType: "application/json",
 		dataType: "json",
-		data: {'action': 'addmessage', 'username': username, 'message': message}
+		data: {'method': 'addmessage', 'params': {'username': username, 'message': message}, 'id': new Date().getTime()},
+		success: function(data) {
+			if (data.error != null) showError(data.error);
+		},
+		error: parseError
 	});
 }
 

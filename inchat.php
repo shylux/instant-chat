@@ -22,10 +22,10 @@ if (!inchat_authenticate()) {
 }
 
 // Check vor valid action
-if (!isset($ic->request->action)) die("No action set");
+if (!isset($ic->request->method)) die("No action set");
 
 // Handle different actions
-switch ($ic->request->action) {
+switch ($ic->request->method) {
 	case "addmessage":
 		addmessage();
 		break;
@@ -54,12 +54,12 @@ function inchat_getusername() {
 
 function addmessage() {
 	$ic = Inchat::getInstance();
-	if (!isset($ic->request->message)) {
+	if (!isset($ic->request->params->message)) {
 		$ic->response->send_error("No Message specified.");
 	}
 
 	$username = inchat_getusername();
-	$message = $ic->request->message;
+	$message = $ic->request->params->message;
 
 	$user_id = $ic->db->getUser($username);
 
@@ -69,7 +69,7 @@ function addmessage() {
 
 function checknewmessage() {
 	$ic = Inchat::getInstance();
-	$lastid = (isset($ic->request->lastid)) ? $ic->request->lastid : 0;
+	$lastid = (isset($ic->request->params->lastid)) ? $ic->request->params->lastid : 0;
 
 	if (INCHAT_MEMCACHE_ENABLED) {
 		wait_for_message_memcache();
@@ -77,36 +77,42 @@ function checknewmessage() {
 		wait_for_message_db();
 	}
 
-	$limit = (INCHAT_MAX_DELIVERED_MESSAGES < $ic->request->max_messages) ? INCHAT_MAX_DELIVERED_MESSAGES : $ic->request->max_messages;
+	$limit = (INCHAT_MAX_DELIVERED_MESSAGES < $ic->request->params->max_messages) ? INCHAT_MAX_DELIVERED_MESSAGES : $ic->request->params->max_messages;
 
 	$result_array = $ic->db->getMessages($lastid, $limit); 
 
-	$ic->response->messages = $result_array;
+	$ic->response->result = $result_array;
 }
 function wait_for_message_db() {
 	$ic = Inchat::getInstance();
-	while (!$ic->db->isNewMsg($ic->request->lastid)) {
+	while (!$ic->db->isNewMsg($ic->request->params->lastid)) {
 		usleep(10000 * INCHAT_SLEEP_DB);
 	}
 }
 function wait_for_message_memcache() {
 	$ic = Inchat::getInstance();
-	while ($ic->get_curr_msg_id() == $ic->request->lastid) {
+	while ($ic->get_curr_msg_id() == $ic->request->params->lastid) {
 		usleep(10000 * INCHAT_SLEEP_MEMCACHED);
 	}
 }
 	
 class inchat_response {
-	public $status = 'success';
-	public $message = 'no message';
+	public $result = 'success';
+	public $error = null;
+	public $id;
 	public function respond() {
 		header('Content-type: application/json');
 		echo json_encode($this);
 		die();
 	}
+	public function send_success($message) {
+		$this->result = $message;
+		$this->error = null;
+		$this->respond();
+	}
 	public function send_error($errorstring) {
-		$this->status = 'Error';
-		$this->message = $errorstring;
+		$this->result = null;
+		$this->error = $errorstring;
 		$this->respond();
 	}
 }
@@ -132,6 +138,7 @@ class Inchat {
 
 		// Response
 		$this->response = new inchat_response;
+		$this->response->id = $this->request->id;
 
 		// Memcache
 		if (INCHAT_MEMCACHE_ENABLED) {
