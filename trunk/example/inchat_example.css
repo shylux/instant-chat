@@ -1,9 +1,4 @@
-#inchat_display {
-	padding: 0;
-}
-
-#inchat_msg_table * {
-	font-size: 12px;
+#inchat_msg_table {
 }
 
 #inchat_title {
@@ -11,7 +6,6 @@
 	text-align: center;
 	border-bottom: 1px solid #BDBDBD;
 }
-
 #inchat_input_message {
 	border: none;
 	border-top: 1px solid #BDBDBD;

@@ -162,7 +162,8 @@ class Inchat_db {
 	}
 
 	public function getMessages($startid, $limit) {
-		$query = "SELECT * FROM message_view WHERE id > ".$this->escape($startid)." ORDER BY id DESC LIMIT ".$this->escape($limit).";";
+		$limit_str = ($limit >= 0) ? " LIMIT ".$this->escape($limit) : "";
+		$query = "SELECT * FROM message_view WHERE id > ".$this->escape($startid)." ORDER BY id DESC".$limit_str.";";
 		$res = $this->query($query);
 		$result_array = array();
 		while ($row=$this->fetch_object($res)) {
