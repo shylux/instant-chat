@@ -1,4 +1,13 @@
 #inchat_msg_table {
+	height: 200px;
+	overflow: auto;
+	margin-left: 3px;
+}
+
+#inchat_msg_table p {
+	font-size: 10px;
+	margin: 0;
+	padding: 0;
 }
 
 #inchat_title {
@@ -11,4 +20,12 @@
 	border-top: 1px solid #BDBDBD;
 	border-bottom: 1px solid #BDBDBD;
 	width: 100%;
+}
+
+.jspDrag {
+	background: #BDBDBD;
+}
+
+.jspTrack {
+	background: #E8E8E8;
 }
