@@ -15,35 +15,36 @@ define('INCHAT_SLEEP_MEMCACHED', 5);
 
 define('INCHAT_MAX_DELIVERED_MESSAGES', 30);
 
-$ic = Inchat::getInstance();
+if (isset($_GET)) {
+	$ic = Inchat::getInstance();
 
-if (!inchat_authenticate()) {
-	$ic->response->send_error("Authentication failed.");
+	if (!inchat_authenticate()) {
+		$ic->response->send_error("Authentication failed.");
+	}
+
+	// Check vor valid action
+	if (!isset($ic->request->method)) die("No action set");
+
+	// Handle different actions
+	switch ($ic->request->method) {
+		case "addmessage":
+			addmessage();
+			break;
+		case "checknewmessage":
+			checknewmessage();
+			break;
+		case "listchannels":
+			listchannels();
+			break;
+		case "createchannel":
+			createchannel();
+			break;
+		default:
+			$ic->response->send_error('No action defined.');
+	}
+	
+	$ic->response->respond();
 }
-
-// Check vor valid action
-if (!isset($ic->request->method)) die("No action set");
-
-// Handle different actions
-switch ($ic->request->method) {
-	case "addmessage":
-		addmessage();
-		break;
-	case "checknewmessage":
-		checknewmessage();
-		break;
-	case "listchannels":
-		listchannels();
-		break;
-	case "createchannel":
-		createchannel();
-		break;
-	default:
-		$ic->response->send_error('No action defined.');
-}
-
-$ic->response->respond();
-
 /**
 * Checks if the user is allowed to use the chat.
 */
@@ -80,6 +81,7 @@ function addmessage() {
 function checknewmessage() {
 	$ic = Inchat::getInstance();
 	$lastid = (isset($ic->request->params->lastid)) ? $ic->request->params->lastid : 0;
+	$channel = (isset($ic->request->params->channel)) ? $ic->request->params->channel : "public";
 
 	if (INCHAT_MEMCACHE_ENABLED) {
 		wait_for_message_memcache();
@@ -90,23 +92,24 @@ function checknewmessage() {
 	$limit = (INCHAT_MAX_DELIVERED_MESSAGES < $ic->request->params->max_messages) ? INCHAT_MAX_DELIVERED_MESSAGES : $ic->request->params->max_messages;
 
 	if (isset($ic->request->params->channel)) {
-		$result_array = $ic->db->getMessages($lastid, $limit, $ic->request->params->channel);
-	} else {
-		$result_array = $ic->db->getMessages($lastid, $limit);
+		$result_array = $ic->db->getMessages($lastid, $limit, $channel);
 	}
 
-	$ic->response->result = $result_array;
+	$result = new message_response;
+	$result->messages = $result_array;
+	$result->channelinfo = $ic->db->getChannel($channel);
+	
+	$ic->response->result = $result;
+}
+class message_response {
+	public $messages;
+	public $channelinfo;
 }
 function wait_for_message_db() {
 	$ic = Inchat::getInstance();
-	if (isset($ic->request->params->channel)) {
-		while (!$ic->db->isNewMsg($ic->request->params->lastid, $ic->request->params->channel)) {
-			usleep(10000 * INCHAT_SLEEP_DB);
-		}
-	} else {
-		while (!$ic->db->isNewMsg($ic->request->params->lastid)) {
-			usleep(10000 * INCHAT_SLEEP_DB);
-		}
+	$channel = (isset($ic->request->params->channel)) ? $ic->request->params->channel : "public";
+	while (!$ic->db->isNewMsg($ic->request->params->lastid, $channel)) {
+		usleep(10000 * INCHAT_SLEEP_DB);
 	}
 }
 function wait_for_message_memcache() {

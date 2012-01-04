@@ -180,13 +180,24 @@ class Inchat_db {
 	* Lists all non-hidden channels
 	*/
 	public function listChannels() {
-		$query = "SELECT name FROM channels WHERE hidden = false;";
+		$query = "SELECT name, enc FROM channels WHERE hidden = false;";
 		$res = $this->query($query);
 		$re_arr = array();
-		while ($row=$this->fetch_array($res)) {
-			array_push($re_arr, $row[0]);
+		while ($obj=$this->fetch_object($res)) {
+			$obj->enc = (bool) $obj->enc;
+			array_push($re_arr, $obj);
 		}
 		return $re_arr;
+	}
+	public function getChannel($chan_name) {
+		$chan_name = $this->escape($chan_name);
+		$query = "SELECT * FROM channels WHERE name = '$chan_name';";
+		$res = $this->query($query);
+		$chan = $this->fetch_object($res);
+		$chan->id = (int) $chan->id;
+		$chan->enc = (bool) $chan->enc;
+		$chan->hidden = (bool) $chan->hidden;
+		return $chan;
 	}
 	public function createChannel($chan_name, $encrypted = false, $hidden = false) {
 		$chan_name = $this->escape($chan_name);
