@@ -8,6 +8,9 @@ inchat_displayed_msg = 0;
 inchat_listening = false;
 inchat_listening_dev = null;
 inchat_channel = "public";
+inchat_channels_enc = null;
+inchat_channel_info = null;
+inchat_channel_pw = "";
 function inchat_start() {
 	inchat_listening = true;
 	inchat_listen();
@@ -39,9 +42,11 @@ function inchat_listen() {
 
 function parseMessages(data) {
 	if (data.error != null) inchat_showError(data.error);
-	for (var index in data.result) {
-		var msg = data.result[index];
+	inchat_channel_info = data.result.channelinfo;
+	for (var index in data.result.messages) {
+		var msg = data.result.messages[index];
 
+		if (inchat_channel_info.enc) msg.message = inchat_decrypt(msg.message);
 		inchat_appendMessage(msg.name, msg.message, msg.timestamp);
 		inchat_displayed_msg++;
 
@@ -86,13 +91,20 @@ function inchat_appendMessage(username, message, date) {
 	$('#inchat_msg_table').append(message_html);
 }
 
+/*
+* Called if INCHAT_MAX_MESSAGES_DISPLAYED is reached
+*/
 function inchat_removeMessage() {
 	$('#inchat_msg_table tr:first').remove();
 }
 
+/*
+* Adds a message to the stream
+*/
 function inchat_send() {
 	var username = "anonymous";
 	var message = $('#inchat_input_message').val();
+	if (inchat_channels_enc[inchat_channel]) message = inchat_encrypt(message);
 	
 	$('#inchat_input_message').val('').focus();
 	$.ajax({
@@ -107,12 +119,16 @@ function inchat_send() {
 	});
 }
 
+// Checks if the key pressed was the enter key
 function inchat_checkenter(eventcode) {
 	if (eventcode == 13) {
 		inchat_send();
 	}
 }
 
+/**
+* Get a list of visible channels and call inchat_add_channel_to_list for every entry
+*/
 function inchat_list_channels() {
 	$.ajax({
                 url: INCHAT_TARGET,
@@ -121,8 +137,11 @@ function inchat_list_channels() {
                 data: {'method': 'listchannels', 'params': {}, 'id': new Date().getTime()},
                 success: function(data) {
                         if (data.error != null) inchat_showError(data.error);
+			inchat_channels_enc = new Object;
 			for (var i in data.result) {
-				inchat_add_channel_to_list(data.result[i]);
+				var chan = data.result[i];
+				inchat_channels_enc[chan.name] = chan.enc;
+				inchat_add_channel_to_list(chan.name);
 			}
                 },
                 error: parseError
@@ -133,12 +152,18 @@ function inchat_add_channel_to_list(chan_name) {
 	
 }
 
+/*
+* Cancels the actual connection and switch to specified channel
+*/
 function inchat_switch_channel(chan_name) {
 	inchat_stop();
 	inchat_channel = chan_name;
 	inchat_start();
 }
 
+/*
+* Request to add a channel. This action can be denied on server side.
+*/
 function inchat_create_channel(chan_name, encrypted, hidden) {
 	$.ajax({
                 url: INCHAT_TARGET,
@@ -149,3 +174,19 @@ function inchat_create_channel(chan_name, encrypted, hidden) {
                 error: parseError
         });
 } 
+
+function inchat_set_pw(new_pw) {
+	inchat_channel_pw = new_pw;
+}
+
+function inchat_request_pw() {
+
+}
+
+function inchat_encrypt(msg) {
+	return AesCtr.encrypt(msg, inchat_channel_pw, 256);
+}
+
+function inchat_decrypt(msg_enc) {
+	 return AesCtr.decrypt(msg_enc, inchat_channel_pw, 256);
+}

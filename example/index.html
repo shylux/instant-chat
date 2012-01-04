@@ -4,6 +4,7 @@
 	<link type="text/css" href="jquery.jscrollpane.css" rel="stylesheet" media="all" />
 	<link rel="stylesheet" href="inchat_example.css" />
 	<script type="text/javascript" src="../jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="../aes.js"></script>
 	<script type="text/javascript" src="../inchat.js"></script>
 	<script type="text/javascript" src="date.js"></script>
 	<script type="text/javascript" src="jquery.mousewheel.js"></script>
@@ -16,6 +17,9 @@
 	<br />
 	<label for="inchat_create_channel">Create Channel</label>
 	<input id="inchat_create_channel" type="text" /><input type="button" value="Create" onclick="javascript:create_channel()" />
+	<br />
+	<label for="inchat_channel_pw">Channel PW</label>
+	<input id="inchat_channel_pw" type="text" /><input type="button" value="Set" onclick="javascript:set_pw()" />
 	<div id="inchat_title"><b>Chat</b></div>
 	<div id="inchat_msg_table" class="scroll-pane">
 	</div>

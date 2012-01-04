@@ -42,3 +42,7 @@ function create_channel() {
 	var chan_name = $('#inchat_create_channel').val();
 	inchat_create_channel(chan_name, false, false);
 }
+
+function set_pw() {
+	inchat_set_pw($('#inchat_channel_pw').val());	
+}
