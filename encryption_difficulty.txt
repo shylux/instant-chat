@@ -1,0 +1,19 @@
+I want to explain how i handle encryption and why.
+
+
+First a little description of the problem:
+
+
+    User A      Connection a                 Connection b         User B
+ { Client A } <=================][Server S][=================> { Client B }
+
+Client A wants to communicate with Client B. They use Connection a and Connection b with Server S to deliver the messages.
+Each of the points can be attacked by a hacker.
+If Client A or B is compromised the hacker can read the whole conversation, because the messages have to be in plaintext (readable for the user). In this case i cant do much for the User, because i dont have access to their Clients.
+Hows about the hacker listening on Connection a or b? If the messages are sent in plaintext and with standard http protocoll the hacker could read the messages. I can prevent this case if i simply use SSL (https). I can use other encryption methods on top of SSL like the Diffie-Hellmann algorithm but this wont make the connection safer, just more complex to handle.
+Another Scenario is that the Server compromise. To prevent that the hacker could read the messages i have to encrypt them. But the hacker could redirect the messages if they came to the server. Or he listen on Connection a or b and capture the messages there.
+As a consequence of this the message have to be encrypted on the client. With a client-to-client encryption the user can be sure that nobody exept the receiver could read the message.
+
+This sound good. But now the reality. To prove the identity of User B against User A i have to setup something like an CA. Setting up a CA-like system is very complex. And in my case this system have to be on Server S (i dont want to use external systems). But Server S could get hacked. So the security gained with a CA-like system would be nearly zero.
+
+On base of this insights i decided to do a simple symmetric-encryption and let the key exchange up to the user. Maybe the provider have already a key on the clients browser so he can use this key (if the provider already provides high security) or he can pass this task to the end-user. Because the end-user has other options like sending they key to the receiver within a SMS or a email. Banks do a similar thing. They give their customers little password generation tools or onetime-password lists. The 

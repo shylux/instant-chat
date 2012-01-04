@@ -1,11 +1,9 @@
 <html>
 <head>
 	<title>Shylux's Server</title>
-	<link rel="stylesheet" type="text/css" href="sysadm.css"/>
 	<link type="text/css" href="jquery.jscrollpane.css" rel="stylesheet" media="all" />
 	<link rel="stylesheet" href="inchat_example.css" />
 	<script type="text/javascript" src="../jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" src="sysadm.js"></script>
 	<script type="text/javascript" src="../inchat.js"></script>
 	<script type="text/javascript" src="date.js"></script>
 	<script type="text/javascript" src="jquery.mousewheel.js"></script>
@@ -13,22 +11,17 @@
 	<script type="text/javascript" src="inchat_example.js"></script>
 </head>
 <body>
-<div id="sys_navigation">
-	<div class="sys_sec" site="content.html">Section1</div>
-	<div class="sys_sec" site="content.html">Section2</div>
-	<div class="sys_sec" site="content.html">Section3</div>
-	<div class="sys_sec" site="content.html">Section4</div>
-	<div class="sys_sec" site="content.html">Section5</div>
-
-	<div id="inchat_main">
-		<div id="inchat_title"><b>Chat</b></div>
-		<div id="inchat_msg_table" class="scroll-pane">
-		</div>
-		<div id="inchat_input">
-			<input id="inchat_input_message" type="input" onkeydown="javascript:inchat_checkenter(event.which)" />
-		</div>
+<div id="inchat_main">
+	<select id="inchat_channels"></select>
+	<br />
+	<label for="inchat_create_channel">Create Channel</label>
+	<input id="inchat_create_channel" type="text" /><input type="button" value="Create" onclick="javascript:create_channel()" />
+	<div id="inchat_title"><b>Chat</b></div>
+	<div id="inchat_msg_table" class="scroll-pane">
+	</div>
+	<div id="inchat_input">
+		<input id="inchat_input_message" type="input" onkeydown="javascript:inchat_checkenter(event.which)" />
 	</div>
 </div>
-<iframe id="sys_frame" src=""></iframe>
 </body>
 </html>

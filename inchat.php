@@ -32,6 +32,12 @@ switch ($ic->request->method) {
 	case "checknewmessage":
 		checknewmessage();
 		break;
+	case "listchannels":
+		listchannels();
+		break;
+	case "createchannel":
+		createchannel();
+		break;
 	default:
 		$ic->response->send_error('No action defined.');
 }
@@ -63,7 +69,11 @@ function addmessage() {
 
 	$user_id = $ic->db->getUser($username);
 
-	$ic->db->addMessage($user_id, $message);
+	if (isset($ic->request->params->channel)) {
+		$ic->db->addMessage($user_id, $message, $ic->request->params->channel);
+	} else {
+		$ic->db->addMessage($user_id, $message);
+	}
 	if (INCHAT_MEMCACHE_ENABLED) $ic->memcache->set('current_message_id', $message_id);
 }
 
@@ -79,14 +89,24 @@ function checknewmessage() {
 
 	$limit = (INCHAT_MAX_DELIVERED_MESSAGES < $ic->request->params->max_messages) ? INCHAT_MAX_DELIVERED_MESSAGES : $ic->request->params->max_messages;
 
-	$result_array = $ic->db->getMessages($lastid, $limit); 
+	if (isset($ic->request->params->channel)) {
+		$result_array = $ic->db->getMessages($lastid, $limit, $ic->request->params->channel);
+	} else {
+		$result_array = $ic->db->getMessages($lastid, $limit);
+	}
 
 	$ic->response->result = $result_array;
 }
 function wait_for_message_db() {
 	$ic = Inchat::getInstance();
-	while (!$ic->db->isNewMsg($ic->request->params->lastid)) {
-		usleep(10000 * INCHAT_SLEEP_DB);
+	if (isset($ic->request->params->channel)) {
+		while (!$ic->db->isNewMsg($ic->request->params->lastid, $ic->request->params->channel)) {
+			usleep(10000 * INCHAT_SLEEP_DB);
+		}
+	} else {
+		while (!$ic->db->isNewMsg($ic->request->params->lastid)) {
+			usleep(10000 * INCHAT_SLEEP_DB);
+		}
 	}
 }
 function wait_for_message_memcache() {
@@ -94,6 +114,15 @@ function wait_for_message_memcache() {
 	while ($ic->get_curr_msg_id() == $ic->request->params->lastid) {
 		usleep(10000 * INCHAT_SLEEP_MEMCACHED);
 	}
+}
+
+function listchannels() {
+	Inchat::getInstance()->response->result = Inchat::getInstance()->db->listChannels();
+}
+
+function createchannel() {
+	$ic = Inchat::getInstance();
+	$ic->db->createChannel($ic->request->params->name, $ic->request->params->encrypted, $ic->request->params->hidden);
 }
 	
 class inchat_response {

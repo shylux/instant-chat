@@ -1,3 +1,6 @@
+#inchat_main {
+	width: 300px;
+}
 #inchat_msg_table {
 	height: 200px;
 	overflow: auto;

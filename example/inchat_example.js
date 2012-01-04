@@ -8,6 +8,11 @@ $(document).ready(function () {
 	inchat_focus();
 	inchat_pane = $('#inchat_msg_table').jScrollPane({maintainPosition: false}).data('jsp')
 	inchat_pane.scrollToBottom();
+	inchat_list_channels();
+	$('#inchat_channels').change(function () {
+		inchat_switch_channel($(this).val());
+		$('.inchat_msg_entry').remove();
+	});
 });
 
 function inchat_appendMessage(username, message, date) {
@@ -28,3 +33,12 @@ function inchat_removeMessage() {
 }
 
 function inchat_showError(message) {}
+
+function inchat_add_channel_to_list(chan_name) {
+	$('#inchat_channels').append("<option value='"+chan_name+"'>"+chan_name+"</option>");
+}
+
+function create_channel() {
+	var chan_name = $('#inchat_create_channel').val();
+	inchat_create_channel(chan_name, false, false);
+}
