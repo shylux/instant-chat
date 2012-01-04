@@ -6,12 +6,16 @@ if (INCHAT_MAX_MESSAGES_DISPLAYED < 0) INCHAT_MAX_MESSAGES_DISPLAYED = Int32.Max
 inchat_lastid = 0;
 inchat_displayed_msg = 0;
 inchat_listening = false;
+inchat_listening_dev = null;
+inchat_channel = "public";
 function inchat_start() {
 	inchat_listening = true;
 	inchat_listen();
 }
 function inchat_stop() {
+	inchat_lastid = 0;
 	inchat_listening = false;
+	inchat_listening_dev.abort();
 }
 function inchat_focus() {
 	$('#inchat_input_message').focus();
@@ -22,12 +26,12 @@ function inchat_listen() {
 		inchat_showError("Server Error. Please contact the Admin.");
 		return;	
 	}
-	$.ajax({
+	inchat_listening_dev = $.ajax({
 		url: INCHAT_TARGET,
 		contentType: "application/json",
 		dataType: "json",
 		async: true,
-		data: {'method': 'checknewmessage', 'params': {'lastid': inchat_lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED}, 'id': new Date().getTime()},
+		data: {'method': 'checknewmessage', 'params': {'lastid': inchat_lastid, 'max_messages': INCHAT_MAX_MESSAGES_DISPLAYED, 'channel': inchat_channel}, 'id': new Date().getTime()},
 		success: parseMessages,
 		error: parseError
 	});
@@ -95,7 +99,7 @@ function inchat_send() {
 		url: INCHAT_TARGET,
 		contentType: "application/json",
 		dataType: "json",
-		data: {'method': 'addmessage', 'params': {'username': username, 'message': message}, 'id': new Date().getTime()},
+		data: {'method': 'addmessage', 'params': {'username': username, 'message': message, 'channel': inchat_channel}, 'id': new Date().getTime()},
 		success: function(data) {
 			if (data.error != null) inchat_showError(data.error);
 		},
@@ -108,3 +112,40 @@ function inchat_checkenter(eventcode) {
 		inchat_send();
 	}
 }
+
+function inchat_list_channels() {
+	$.ajax({
+                url: INCHAT_TARGET,
+                contentType: "application/json",
+                dataType: "json",
+                data: {'method': 'listchannels', 'params': {}, 'id': new Date().getTime()},
+                success: function(data) {
+                        if (data.error != null) inchat_showError(data.error);
+			for (var i in data.result) {
+				inchat_add_channel_to_list(data.result[i]);
+			}
+                },
+                error: parseError
+        });
+}
+
+function inchat_add_channel_to_list(chan_name) {
+	
+}
+
+function inchat_switch_channel(chan_name) {
+	inchat_stop();
+	inchat_channel = chan_name;
+	inchat_start();
+}
+
+function inchat_create_channel(chan_name, encrypted, hidden) {
+	$.ajax({
+                url: INCHAT_TARGET,
+                contentType: "application/json",
+                dataType: "json",
+                data: {'method': 'createchannel', 'params': {'name': chan_name, 'encrypted': encrypted, 'hidden': hidden}, 'id': new Date().getTime()},
+                success: function(data) {},
+                error: parseError
+        });
+} 

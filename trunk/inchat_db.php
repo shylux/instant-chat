@@ -130,8 +130,8 @@ class Inchat_db {
 	* Param: $index -> actual message id
 	* Return: true if new message
 	*/
-	public function isNewMsg($index) {
-		$query = "SELECT checknewmessages('".$this->escape($index)."')";
+	public function isNewMsg($index, $channel = "public") {
+		$query = "SELECT checknewmessagesbychannel('".$this->escape($index)."', '".$this->escape($channel)."')";
 		$res = $this->query($query);
 		$re_arr = $this->fetch_array($res);
 		return (boolean)$re_arr[0];
@@ -154,16 +154,16 @@ class Inchat_db {
 	* Param: $userid -> if of sender, $message -> message content
 	* Return: message id
 	*/
-	public function addMessage($userid, $message) {
-		$query = "SELECT addmessage(".$this->escape($userid).", '".$this->escape($message)."')";
+	public function addMessage($userid, $message, $channel = "public") {
+		$query = "SELECT addmessagetochannel(".$this->escape($userid).", '".$this->escape($channel)."', '".$this->escape($message)."')";
 		$res = $this->query($query);
 		$re_arr = $this->fetch_array($res);
 		return (int)$re_arr[0];
 	}
 
-	public function getMessages($startid, $limit) {
+	public function getMessages($startid, $limit, $channel = "public") {
 		$limit_str = ($limit >= 0) ? " LIMIT ".$this->escape($limit) : "";
-		$query = "SELECT * FROM message_view WHERE id > ".$this->escape($startid)." ORDER BY id DESC".$limit_str.";";
+		$query = "SELECT * FROM message_view WHERE channelname = '".$this->escape($channel)."' AND id > ".$this->escape($startid)." ORDER BY id DESC".$limit_str.";";
 		$res = $this->query($query);
 		$result_array = array();
 		while ($row=$this->fetch_object($res)) {
@@ -174,6 +174,26 @@ class Inchat_db {
 		}
 		$result_array = array_reverse($result_array);
 		return $result_array;
+	}
+
+	/**
+	* Lists all non-hidden channels
+	*/
+	public function listChannels() {
+		$query = "SELECT name FROM channels WHERE hidden = false;";
+		$res = $this->query($query);
+		$re_arr = array();
+		while ($row=$this->fetch_array($res)) {
+			array_push($re_arr, $row[0]);
+		}
+		return $re_arr;
+	}
+	public function createChannel($chan_name, $encrypted = false, $hidden = false) {
+		$chan_name = $this->escape($chan_name);
+		$enc = $this->escape($encrypted);
+		$hidden = $this->escape($hidden);
+		$query = "INSERT INTO channels (name, enc, hidden) VALUES ('".$chan_name."', $enc, $hidden);";
+		$this->query($query);
 	}
 }
 

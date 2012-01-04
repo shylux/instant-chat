@@ -20,19 +20,30 @@ CREATE TABLE users (
 	timestamp timestamp DEFAULT now()
 ) ENGINE=INNODB;
 
+CREATE TABLE channels (
+	id	BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	name	varchar(100) NOT NULL UNIQUE,
+	enc	boolean NOT NULL DEFAULT False,
+	hidden	boolean NOT NULL DEFAULT False
+) ENGINE=INNODB;
+INSERT INTO channels (name, enc, hidden) VALUES ("public", false, false);
+
 CREATE TABLE message (
-	id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id		BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	-- Need not null after user implementation --
-	userid BIGINT,
-	message varchar(255) NOT NULL,
-	timestamp timestamp DEFAULT now(),
-	FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE
+	userid		BIGINT,
+	channelid 	BIGINT DEFAULT 0,
+	message		varchar(255) NOT NULL,
+	timestamp	timestamp DEFAULT now(),
+	FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (channelid) REFERENCES channels(id) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 CREATE VIEW message_view AS
-	SELECT message.id, users.name, message.message, message.timestamp
-	FROM message, users 
-	WHERE message.userid = users.id;
+	SELECT message.id, channels.name as channelname, users.name, message.message, message.timestamp
+	FROM message, users, channels
+	WHERE message.userid = users.id
+	AND message.channelid = channels.id;
 
 -- create functions
 delimiter //
@@ -55,11 +66,33 @@ DROP FUNCTION IF EXISTS checknewmessages//
 CREATE FUNCTION checknewmessages (lastid BIGINT)
 RETURNS BOOLEAN
 BEGIN
-	If Exists (SELECT id FROM message WHERE message.id > lastid) THEN
+	If Exists (SELECT id FROM message WHERE channelid = getchannelbyname("public") AND message.id > lastid) THEN
 		RETURN True;
 	ELSE
 		RETURN False;
 	END IF;
+END//
+
+-- checknewmessagesbychannel
+DROP FUNCTION IF EXISTS checknewmessagesbychannel//
+CREATE FUNCTION checknewmessagesbychannel (lastid BIGINT, channelname varchar(100))
+RETURNS BOOLEAN
+BEGIN
+	If Exists (SELECT id FROM message WHERE channelid = getchannelbyname(channelname) AND message.id > lastid) THEN
+		RETURN True;
+	ELSE
+		RETURN False;
+	END IF;
+END//
+
+-- getchannelbyname
+DROP FUNCTION IF EXISTS getchannelbyname//
+CREATE FUNCTION getchannelbyname (channelname varchar(100))
+RETURNS BIGINT
+BEGIN
+	DECLARE channelid BIGINT;
+	SELECT id INTO channelid FROM channels WHERE name = channelname;
+	RETURN channelid;
 END//
 
 -- addmessage
@@ -68,7 +101,18 @@ CREATE FUNCTION addmessage (newuserid BIGINT, newmessage varchar(255))
 RETURNS BIGINT
 BEGIN
 	DECLARE messageid BIGINT;
-	INSERT INTO message (userid, message) VALUES (newuserid, newmessage);
+	INSERT INTO message (userid, channelid, message) VALUES (newuserid, getchannelbyname("public"), newmessage);
+	SELECT id INTO messageid FROM message GROUP BY id DESC LIMIT 1;
+	RETURN messageid;
+END//
+
+-- addmessagetochannel
+DROP FUNCTION IF EXISTS addmessagetochannel//
+CREATE FUNCTION addmessagetochannel (newuserid BIGINT, channelname varchar(100), newmessage varchar(255))
+RETURNS BIGINT
+BEGIN
+	DECLARE messageid BIGINT;
+	INSERT INTO message (userid, channelid, message) VALUES (newuserid, getchannelbyname(channelname), newmessage);
 	SELECT id INTO messageid FROM message GROUP BY id DESC LIMIT 1;
 	RETURN messageid;
 END//
