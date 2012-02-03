@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="aes.js"></script>
+	<script type="text/javascript" src="inchat2.js"></script>
+	<script type="text/javascript" src="example.js"></script>
+</head>
+<body>
+	<p>Example for Instant Chat</p>
+
+	<p>Create Channel</p>
+	<label for="inchat_create_channel">Name</label>
+	<input type="text" id="inchat_create_channel" />
+	<br />
+	<label for="inchat_create_enc">Encrypted</label>
+	<input type="checkbox" id="inchat_create_enc" />
+	<input type="submit" value="create" id="inchat_create_submit" />
+	<br />
+	<br />
+	
+	<select id="inchat_channels">
+	</select>
+	<label for="inchat_channel_pw">pw:</label>
+	<input type="text" id="inchat_channel_pw" />
+	<br />
+	
+	<label for="inchat_input_message">Add Message</label>
+	<input id="inchat_input_message" type="text" />
+	<input type="button" value="send" id="inchat_msg_send" />
+	<br />
+	<div id="inchat_msg_table"></div>
+</body>
+</html>
